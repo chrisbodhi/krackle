@@ -2,6 +2,8 @@
 
 Based on the unique styling of Jack "The King" Kirby. Read more about how the power cosmic pops from the page [here](https://en.wikipedia.org/wiki/Kirby_Krackle).
 
+**[Live demo](https://chrisbodhi.github.io/krackle/krackle-demo.html)** — click anywhere.
+
 ## Usage
 
 `initKrackle()` appends one full-viewport `<canvas>` to `<body>` and
