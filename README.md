@@ -2,7 +2,16 @@
 
 Based on the unique styling of Jack "The King" Kirby. Read more about how the power cosmic pops from the page [here](https://en.wikipedia.org/wiki/Kirby_Krackle).
 
-<img src="assets/krackle-hero.png" width="380" alt="A krackle burst: black ink dot-masses radiating outward from a click point, with a clear halo at the center and 2-4 white rays preserved through the blast." />
+<table>
+<tr>
+<td><img src="assets/krackle.jpg" width="280" alt="A classic Kirby Krackle panel: a figure dissolving into radiating dot-masses and energy, straight from a Jack Kirby comic page." /></td>
+<td><img src="assets/krackle-hero.png" width="320" alt="A krackle burst from this library: black ink dot-masses radiating outward from a click point, with a clear halo at the center and 2-4 white rays preserved through the blast." /></td>
+</tr>
+<tr>
+<td align="center"><sub>The King's original</sub></td>
+<td align="center"><sub>This library, in a browser</sub></td>
+</tr>
+</table>
 
 **[Live demo](https://chrisbodhi.github.io/krackle/krackle-demo.html)** — click anywhere.
 
