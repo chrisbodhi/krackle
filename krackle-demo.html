@@ -40,14 +40,49 @@
   }
   button:hover { color: var(--accent); border-color: var(--accent); }
   code { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; }
+
+  #tuner {
+    position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
+    overflow-y: auto; box-sizing: border-box;
+    background: var(--bg); border-left: 1px solid var(--rule);
+    padding: 20px 20px 60px; z-index: 1000;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px;
+    transform: translateX(100%); transition: transform 0.2s;
+  }
+  #tuner.open { transform: translateX(0); }
+  #tuner .group-title {
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent);
+    font-size: 10px; margin: 18px 0 10px;
+  }
+  #tuner .group-title:first-child { margin-top: 0; }
+  #tuner .row { margin-bottom: 10px; }
+  #tuner .row label {
+    display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px;
+  }
+  #tuner .row .val { font-variant-numeric: tabular-nums; opacity: 0.6; }
+  #tuner .row input[type="range"] { width: 100%; display: block; }
+  #tuner .pair, #tuner .triplet { display: flex; gap: 6px; }
+  #tuner .pair input, #tuner .triplet input { flex: 1; min-width: 0; }
+  #tuner .actions {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px;
+    padding-top: 14px; border-top: 1px solid var(--rule);
+  }
+  #tuner .actions button { flex: 1; }
+  #tuner pre {
+    white-space: pre-wrap; word-break: break-word; font-size: 10px;
+    background: rgba(128, 128, 128, 0.1); padding: 8px; margin-top: 10px;
+    max-height: 200px; overflow: auto;
+  }
 </style>
 </head>
 <body>
 <div class="meta">
   <button id="theme">◐ Theme</button>
   <button id="power">⏻ On</button>
+  <button id="tune">⚙ Tune</button>
   <span id="stat">idle</span>
 </div>
+<aside id="tuner"></aside>
 <h1>The <em>Negative Zone</em> harness</h1>
 <p><strong>The burst test:</strong> click anywhere. A krackle detonation should bloom outward from the click point — inner masses first, outer bands ~55 and ~110ms behind, everything decelerating as it drifts — with 2–4 clean white rays radiating through it and a clear halo at the center. Masses should be thick near the source and dissolve into scattered dots at the rim. Then it fades: full ink for about the first 60% of its life, then gone.</p>
 <p><strong>What should NOT happen:</strong> no krackle while moving the mouse. No krackle while scroll-dragging on a phone — only a completed tap bursts. No burst from keyboard-activating these buttons. And a few seconds after the last burst fades, the loop should be fully asleep.</p>

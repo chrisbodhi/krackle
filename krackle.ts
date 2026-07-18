@@ -24,13 +24,18 @@ export interface KrackleOptions {
                                 // --krackle-mode); absent → sample background
   lobesMax?: number;            // silhouette lobes 1-4 (default 3)
   lobeSpread?: number;          // 0.2-0.9 (default 0.55)
-  donutProb?: number;           // 0-0.5 (default 0.15)
   rimWidth?: number;            // px (default 1.5)
   satsMax?: number;             // satellites per cluster max (default 6)
   satSpread?: number;           // ×anchor radius (default 1.6)
   rays?: [number, number];      // white rays per burst, min/max (default [2, 4])
   rayHalf?: [number, number];   // ray half-angle range, radians (default [0.22, 0.32])
   burstRadius?: [number, number];// inner halo / outer rim, px (default [24, 110])
+  anchorRadius?: [number, number];// cluster-core dot radius, px (default [10, 15])
+  satRadius?: [number, number]; // satellite dot radius, px (default [8, 13])
+  dissolve?: number;            // 0-1, how much satellites shrink toward the rim (default 0.15)
+  driftRange?: [number, number];// base outward drift per cluster, px (default [20, 36])
+  bandAttempts?: [number, number, number]; // cluster attempts per band, inner→outer (default [14, 11, 9])
+  bandDelayMs?: number;         // ms between band bloom stagger (default 55)
 }
 
 export interface KrackleHandle {
@@ -53,31 +58,34 @@ interface Particle {
   alive: boolean;
 }
 
-const DEFAULTS: Required<KrackleOptions> = {
-  maxParticles: 300,
+export const DEFAULTS: Required<KrackleOptions> = {
+  maxParticles: 590,
   lifespan: [1200, 2500],
   zIndex: 10,
   seed: 19620828,
   fillVar: "--krackle-fill",
   rimVar: "--krackle-rim",
   modeVar: "--krackle-mode",
-  lobesMax: 3,
+  lobesMax: 5,
   lobeSpread: 0.55,
-  donutProb: 0.15,
   rimWidth: 1.5,
-  satsMax: 6,
-  satSpread: 1.6,
+  satsMax: 2,
+  satSpread: 1.55,
   rays: [2, 4],
-  rayHalf: [0.22, 0.32],
-  burstRadius: [24, 110],
+  rayHalf: [0.32, 0.44],
+  burstRadius: [28, 108],
+  anchorRadius: [15, 16.5],
+  satRadius: [8, 10],
+  dissolve: 0.15,
+  driftRange: [60, 106],
+  bandAttempts: [15, 19, 22],
+  bandDelayMs: 85,
 };
 
 const ANCHOR_COUNT = 12;
 const SAT_COUNT = 6;
 const POP_MS = 110;          // scale-in duration
 const HOLD_FRACTION = 0.6;   // alpha holds until this fraction of life
-const BAND_ATTEMPTS = [5, 4, 3]; // clusters attempted per radial band, inner→outer
-const BAND_DELAY_MS = 55;    // bloom travels outward
 
 /* ---------------------------------------------------------------- RNG */
 
@@ -96,7 +104,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function makeMask(
   rand: () => number, r: number, dpr: number,
-  o: { lobesMax: number; lobeSpread: number; donutProb: number },
+  o: { lobesMax: number; lobeSpread: number },
 ): { mask: HTMLCanvasElement; size: number } {
   const pad = Math.ceil(r * 0.9) + 4;
   const size = Math.ceil((r + pad) * 2);
@@ -119,16 +127,6 @@ function makeMask(
     g.fill();
   }
 
-  if (rand() < o.donutProb) {
-    const hr = r * lerp(0.32, 0.5, rand());
-    const ha = rand() * Math.PI * 2;
-    const hd = r * 0.18 * rand();
-    g.globalCompositeOperation = "destination-out";
-    g.beginPath();
-    g.arc(Math.cos(ha) * hd, Math.sin(ha) * hd, hr, 0, Math.PI * 2);
-    g.fill();
-    g.globalCompositeOperation = "source-over";
-  }
   return { mask: c, size };
 }
 
@@ -219,12 +217,10 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
 
   function buildAtlas(fill: string, rim: string): void {
     const rand = mulberry32(opts.seed);
-    const shapeOpts = {
-      lobesMax: opts.lobesMax, lobeSpread: opts.lobeSpread, donutProb: opts.donutProb,
-    };
+    const shapeOpts = { lobesMax: opts.lobesMax, lobeSpread: opts.lobeSpread };
     const next: Sprite[] = [];
     for (let i = 0; i < ANCHOR_COUNT; i++) {
-      const r = lerp(6, 16, rand());
+      const r = lerp(opts.anchorRadius[0], opts.anchorRadius[1], rand());
       const { mask, size } = makeMask(rand, r, dpr, shapeOpts);
       next.push({
         r, size,
@@ -233,8 +229,8 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
       });
     }
     for (let i = 0; i < SAT_COUNT; i++) {
-      const r = lerp(1.5, 5, rand());
-      const { mask, size } = makeMask(rand, r, dpr, { ...shapeOpts, lobesMax: 1, donutProb: 0 });
+      const r = lerp(opts.satRadius[0], opts.satRadius[1], rand());
+      const { mask, size } = makeMask(rand, r, dpr, { ...shapeOpts, lobesMax: 1 });
       next.push({
         r, size,
         light: finalize(mask, "light", fill, rim, opts.rimWidth, dpr),
@@ -341,8 +337,8 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
       const bias = srand(); // squared random → clump toward anchor
       const d = anchor.r * opts.satSpread * (0.35 + 1.3 * bias * bias);
       const dNorm = Math.min(1, d / dMax);
-      // farther from the anchor → smaller dot (dissolution)
-      const satRank = srand() * (1 - 0.6 * dNorm);
+      // farther from the anchor → slightly smaller dot (dissolution)
+      const satRank = srand() * (1 - opts.dissolve * dNorm);
       s.sprite = satsBySize[Math.min(SAT_COUNT - 1, (satRank * SAT_COUNT) | 0)]!;
       s.x = x + Math.cos(ang) * d;
       s.y = y + Math.sin(ang) * d;
@@ -433,20 +429,20 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     };
 
     const [r0, r1] = opts.burstRadius;
-    for (let b = 0; b < BAND_ATTEMPTS.length; b++) {
+    for (let b = 0; b < opts.bandAttempts.length; b++) {
       const ri = lerp(r0, r1, b / 3);
       const ro = lerp(r0, r1, (b + 1) / 3);
-      for (let i = 0; i < BAND_ATTEMPTS[b]!; i++) {
+      for (let i = 0; i < opts.bandAttempts[b]!; i++) {
         const ang = srand() * Math.PI * 2;
         if (inRay(ang)) continue; // preserve the white ray — skip, don't retry
         const rad = lerp(ri, ro, srand());
         spawnCluster(
           x + Math.cos(ang) * rad,
           y + Math.sin(ang) * rad,
-          b * BAND_DELAY_MS + srand() * 70, // bloom travels outward
+          b * opts.bandDelayMs + srand() * 70, // bloom travels outward
           ang,                               // dissolve away from the source
           b,                                 // outer bands are lighter masses
-          lerp(8, 16, srand()) * (0.6 + b * 0.3), // outer bands fly further
+          lerp(opts.driftRange[0], opts.driftRange[1], srand()) * (0.6 + b * 0.4), // outer bands fly further
         );
       }
     }
