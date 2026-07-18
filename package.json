@@ -1,6 +1,9 @@
 {
   "name": "krackle",
   "private": true,
+  "scripts": {
+    "build": "bun build ./krackle.ts --outfile krackle.esm.min.js --format esm --target browser --minify"
+  },
   "devDependencies": {
     "@types/bun": "1.3.14"
   },

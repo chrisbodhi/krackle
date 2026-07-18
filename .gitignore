@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+# Local Claude settings
+.claude/settings.local.json
+
 # output
 out
 dist

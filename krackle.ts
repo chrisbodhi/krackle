@@ -180,7 +180,7 @@ function pageIsDark(): boolean {
     const m = bg.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?/);
     if (!m) continue;
     if (m[4] !== undefined && parseFloat(m[4]) === 0) continue; // transparent
-    const lum = (0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]) / 255;
+    const lum = (0.2126 * +m[1]! + 0.7152 * +m[2]! + 0.0722 * +m[3]!) / 255;
     return lum < 0.5;
   }
   return false;
@@ -243,10 +243,10 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     }
     sprites = next;
     anchorsBySize = next.slice(0, ANCHOR_COUNT)
-      .map((s, i) => i).sort((a, b) => next[a].r - next[b].r);
+      .map((s, i) => i).sort((a, b) => next[a]!.r - next[b]!.r);
     satsBySize = next.slice(ANCHOR_COUNT)
       .map((_, i) => ANCHOR_COUNT + i)
-      .sort((a, b) => next[a].r - next[b].r);
+      .sort((a, b) => next[a]!.r - next[b]!.r);
   }
 
   /* -- theme resolution ---------------------------------------------
@@ -293,7 +293,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
   let now = performance.now(); // updated by the rAF loop; used at spawn time
 
   function alloc(): Particle {
-    const p = pool[head];
+    const p = pool[head]!;
     head = (head + 1) % pool.length;
     if (!p.alive) aliveCount++;
     p.alive = true;
@@ -321,8 +321,8 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     const rank = tier === 0 ? 0.35 + srand() * 0.65
                : tier === 1 ? srand()
                : srand() * 0.5;
-    const anchorIdx = anchorsBySize[Math.min(ANCHOR_COUNT - 1, (rank * ANCHOR_COUNT) | 0)];
-    const anchor = sprites[anchorIdx];
+    const anchorIdx = anchorsBySize[Math.min(ANCHOR_COUNT - 1, (rank * ANCHOR_COUNT) | 0)]!;
+    const anchor = sprites[anchorIdx]!;
     const life = lerp(opts.lifespan[0], opts.lifespan[1], srand());
     const fx = Math.cos(facing), fy = Math.sin(facing);
 
@@ -343,7 +343,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
       const dNorm = Math.min(1, d / dMax);
       // farther from the anchor → smaller dot (dissolution)
       const satRank = srand() * (1 - 0.6 * dNorm);
-      s.sprite = satsBySize[Math.min(SAT_COUNT - 1, (satRank * SAT_COUNT) | 0)];
+      s.sprite = satsBySize[Math.min(SAT_COUNT - 1, (satRank * SAT_COUNT) | 0)]!;
       s.x = x + Math.cos(ang) * d;
       s.y = y + Math.sin(ang) * d;
       s.birth = t0 + delay + srand() * 60;
@@ -368,7 +368,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let live = 0;
     for (let i = 0; i < pool.length; i++) {
-      const p = pool[i];
+      const p = pool[i]!;
       if (!p.alive) continue;
       const age = t - p.birth;
       if (age < 0) { live++; continue; }        // staggered, not yet born
@@ -381,7 +381,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
         : 1 - Math.pow((u - HOLD_FRACTION) / (1 - HOLD_FRACTION), 3);
       const scale = age < POP_MS ? easeOutBack(age / POP_MS) : 1;
 
-      const sp = sprites[p.sprite];
+      const sp = sprites[p.sprite]!;
       const img = dark ? sp.dark : sp.light;
       const w = sp.size * scale;
       // drift eases out — blast decelerates, doesn't glide
@@ -436,7 +436,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     for (let b = 0; b < BAND_ATTEMPTS.length; b++) {
       const ri = lerp(r0, r1, b / 3);
       const ro = lerp(r0, r1, (b + 1) / 3);
-      for (let i = 0; i < BAND_ATTEMPTS[b]; i++) {
+      for (let i = 0; i < BAND_ATTEMPTS[b]!; i++) {
         const ang = srand() * Math.PI * 2;
         if (inRay(ang)) continue; // preserve the white ray — skip, don't retry
         const rad = lerp(ri, ro, srand());
