@@ -2,6 +2,8 @@
 
 Based on the unique styling of Jack "The King" Kirby. Read more about how the power cosmic pops from the page [here](https://en.wikipedia.org/wiki/Kirby_Krackle).
 
+<img src="assets/krackle-hero.png" width="380" alt="A krackle burst: black ink dot-masses radiating outward from a click point, with a clear halo at the center and 2-4 white rays preserved through the blast." />
+
 **[Live demo](https://chrisbodhi.github.io/krackle/krackle-demo.html)** — click anywhere.
 
 ## Usage
