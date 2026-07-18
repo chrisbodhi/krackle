@@ -1,0 +1,9 @@
+#!/bin/sh
+# Keep krackle.esm.min.js in sync with krackle.ts.
+# Installed automatically by `bun install` (see package.json "prepare").
+set -e
+
+if git diff --cached --name-only | grep -q '^krackle\.ts$'; then
+  bun run build
+  git add krackle.esm.min.js
+fi
