@@ -24,6 +24,10 @@ const FIELDS = [
 
   { group: "Lifetime & pool", key: "lifespan", label: "Lifespan", kind: "pair", min: 200, max: 5000, step: 50, unit: "ms" },
   { key: "maxParticles", label: "Particle pool", kind: "single", min: 50, max: 2000, step: 10 },
+
+  { group: "Flash", key: "flash", label: "Flash mode", kind: "select", options: ["none", "white", "invert"] },
+  { key: "flashMs", label: "Flash duration", kind: "single", min: 20, max: 800, step: 10, unit: "ms" },
+  { key: "flashPeak", label: "Flash peak opacity", kind: "single", min: 0, max: 1, step: 0.05 },
 ];
 
 function fmt(n, step) {
@@ -59,7 +63,22 @@ function renderFields() {
     label.append(name, val);
     row.appendChild(label);
 
-    if (f.kind === "single") {
+    if (f.kind === "select") {
+      val.textContent = state[f.key];
+      const select = document.createElement("select");
+      for (const opt of f.options) {
+        const o = document.createElement("option");
+        o.value = opt; o.textContent = opt;
+        if (opt === state[f.key]) o.selected = true;
+        select.appendChild(o);
+      }
+      select.addEventListener("input", () => {
+        state[f.key] = select.value;
+        val.textContent = state[f.key];
+        onChange();
+      });
+      row.appendChild(select);
+    } else if (f.kind === "single") {
       val.textContent = fmt(state[f.key], f.step);
       const input = mkRange(f, state[f.key]);
       input.addEventListener("input", () => {

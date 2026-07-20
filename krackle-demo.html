@@ -61,6 +61,11 @@
   }
   #tuner .row .val { font-variant-numeric: tabular-nums; opacity: 0.6; }
   #tuner .row input[type="range"] { width: 100%; display: block; }
+  #tuner .row select {
+    width: 100%; font: inherit; font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; background: var(--bg); color: var(--fg);
+    border: 1px solid var(--fg); padding: 3px 6px;
+  }
   #tuner .pair, #tuner .triplet { display: flex; gap: 6px; }
   #tuner .pair input, #tuner .triplet input { flex: 1; min-width: 0; }
   #tuner .actions {

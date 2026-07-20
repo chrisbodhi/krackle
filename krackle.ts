@@ -36,6 +36,9 @@ export interface KrackleOptions {
   driftRange?: [number, number];// base outward drift per cluster, px (default [20, 36])
   bandAttempts?: [number, number, number]; // cluster attempts per band, inner→outer (default [14, 11, 9])
   bandDelayMs?: number;         // ms between band bloom stagger (default 55)
+  flash?: "none" | "white" | "invert"; // full-viewport flash on click (default "none")
+  flashMs?: number;             // flash fade duration, ms (default 180)
+  flashPeak?: number;           // flash peak opacity, 0-1 (default 0.85)
 }
 
 export interface KrackleHandle {
@@ -80,6 +83,9 @@ export const DEFAULTS: Required<KrackleOptions> = {
   driftRange: [34, 106],
   bandAttempts: [14, 18, 26],
   bandDelayMs: 85,
+  flash: "invert",
+  flashMs: 180,
+  flashPeak: 0.85,
 };
 
 const ANCHOR_COUNT = 12;
@@ -200,6 +206,32 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
   canvas.setAttribute("aria-hidden", "true");
   document.body.appendChild(canvas);
   const ctx = canvas.getContext("2d")!;
+
+  /* -- flash ---------------------------------------------------------
+   * A full-viewport overlay for the "white" and "invert" flash modes.
+   * "invert" uses mix-blend-mode: difference against a white fill, which
+   * inverts whatever's beneath it regardless of theme; "white" just
+   * washes toward white in normal blending. Web Animations API handles
+   * the fade so overlapping rapid clicks just restart it cleanly.
+   */
+  let flashEl: HTMLDivElement | null = null;
+  if (opts.flash !== "none") {
+    flashEl = document.createElement("div");
+    Object.assign(flashEl.style, {
+      position: "fixed", inset: "0", pointerEvents: "none",
+      zIndex: String(opts.zIndex + 1), background: "#fff", opacity: "0",
+      mixBlendMode: opts.flash === "invert" ? "difference" : "normal",
+    } as CSSStyleDeclaration);
+    flashEl.setAttribute("aria-hidden", "true");
+    document.body.appendChild(flashEl);
+  }
+
+  function triggerFlash(): void {
+    flashEl?.animate(
+      [{ opacity: opts.flashPeak }, { opacity: 0 }],
+      { duration: opts.flashMs, easing: "ease-out" },
+    );
+  }
 
   let dpr = Math.min(devicePixelRatio || 1, 2);
   function sizeCanvas(): void {
@@ -413,6 +445,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
    * the source, breaking into scattered dots at the rim.
    */
   function burst(x: number, y: number): void {
+    triggerFlash();
     const rayN = opts.rays[0] + ((srand() * (opts.rays[1] - opts.rays[0] + 1)) | 0);
     const rayHalf = lerp(opts.rayHalf[0], opts.rayHalf[1], srand());
     const rayBase = srand() * Math.PI * 2;
@@ -514,6 +547,7 @@ export function initKrackle(options: KrackleOptions = {}): KrackleHandle {
     clearTimeout(resizeTimer);
     for (const id of settleTimers) clearTimeout(id);
     canvas.remove();
+    flashEl?.remove();
   }
 
   return { destroy };
