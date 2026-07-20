@@ -59,7 +59,7 @@ interface Particle {
 }
 
 export const DEFAULTS: Required<KrackleOptions> = {
-  maxParticles: 590,
+  maxParticles: 920,
   lifespan: [1200, 2500],
   zIndex: 10,
   seed: 19620828,
@@ -73,12 +73,12 @@ export const DEFAULTS: Required<KrackleOptions> = {
   satSpread: 1.55,
   rays: [2, 4],
   rayHalf: [0.32, 0.44],
-  burstRadius: [28, 108],
-  anchorRadius: [15, 16.5],
-  satRadius: [8, 10],
+  burstRadius: [22, 210],
+  anchorRadius: [6, 14.5],
+  satRadius: [4.5, 10],
   dissolve: 0.15,
-  driftRange: [60, 106],
-  bandAttempts: [15, 19, 22],
+  driftRange: [34, 106],
+  bandAttempts: [14, 18, 26],
   bandDelayMs: 85,
 };
 
