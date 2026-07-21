@@ -32,14 +32,14 @@ Import it straight from jsDelivr's GitHub CDN — no install, no build step:
 
 ```html
 <script type="module">
-  import { initKrackle } from "https://cdn.jsdelivr.net/gh/chrisbodhi/krackle@v0.2.0/krackle.esm.min.js";
+  import { initKrackle } from "https://cdn.jsdelivr.net/gh/chrisbodhi/krackle@v0.3.0/krackle.esm.min.js";
   const krackle = initKrackle();
   // later, to tear down the canvas and listeners:
   // krackle.destroy();
 </script>
 ```
 
-Pin to a tag (`@v0.2.0`) like above for stability, or drop the version
+Pin to a tag (`@v0.3.0`) like above for stability, or drop the version
 (`.../gh/chrisbodhi/krackle/krackle.esm.min.js`) to always get the latest
 tagged release — not recommended for production, since a new tag changes
 the file out from under you without warning.
