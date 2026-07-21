@@ -143,3 +143,14 @@ To build a new minified version for the browser, run
 ```bash
 bun run build
 ```
+
+### Keep the demo GIF in sync
+
+The animated GIF at the top of this README (`assets/krackle.gif`) is a
+recording of the real burst. If your change alters the visible behavior —
+retuned burst defaults, the flash/invert, colors, timing — please
+regenerate it so the README reflects what ships, and update the image's
+`alt` text if the effect changed. The capture-and-encode workflow (browser
+capture → `ffmpeg`) is documented for Claude Code in
+`.claude/skills/readme-gif/`; run `bun run build` first so the GIF captures
+the built module.
