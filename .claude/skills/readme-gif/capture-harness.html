@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>krackle capture harness</title>
+<style>
+  /* Match the demo's light theme so the atlas builds the right ink colors. */
+  :root {
+    --bg: #F2ECDC;
+    --krackle-fill: #16130F; --krackle-rim: #F2ECDC; --krackle-mode: light;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); }
+</style>
+</head>
+<body>
+<script type="module">
+  // Served from the repo root, so the built module sits next to this file.
+  import { initKrackle } from "./krackle.esm.min.js";
+  window.krackle = initKrackle();
+
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+
+  // -- pass A: real-time capture (fast; must not be starved) -------------
+  // Records raw canvas frames + the flash overlay's opacity at a fixed
+  // cadence. Runs against the REAL animation timing, so the tab MUST be
+  // visible (a hidden tab freezes requestAnimationFrame).
+  window.captureRaw = async function ({ fps = 24, tailMs = 2900 } = {}) {
+    const canvas = document.querySelector("canvas");
+    const flashEl = document.querySelector('div[aria-hidden="true"]');
+    const cx = Math.round(innerWidth / 2), cy = Math.round(innerHeight / 2);
+    const raw = [];
+    const start = performance.now();
+    let lastT = -1e9;
+    const minGap = 1000 / fps;
+    // krackle listens on window; dispatch to canvas too for safety.
+    for (const target of [canvas, window]) {
+      target.dispatchEvent(
+        new MouseEvent("click", { clientX: cx, clientY: cy, detail: 1, bubbles: true }),
+      );
+    }
+    await new Promise((resolve) => {
+      function frame() {
+        const t = performance.now() - start;
+        if (t - lastT >= minGap) {
+          lastT = t;
+          const fo = parseFloat(getComputedStyle(flashEl).opacity) || 0;
+          raw.push({ t, url: canvas.toDataURL("image/png"), fo });
+        }
+        if (t < tailMs) requestAnimationFrame(frame);
+        else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+    window.__raw = raw;
+    window.__meta = { cx, cy };
+    return { count: raw.length, span: raw[raw.length - 1].t | 0 };
+  };
+
+  // -- pass B: composite bg + dots + invert-flash, then POST (offline) ---
+  // No timing pressure here, so the heavy per-pixel work is safe. The
+  // canvas is transparent (no bg draw call), so we composite each frame
+  // onto the page bg, then reproduce the flash overlay's
+  // mix-blend-mode:difference-vs-white at the recorded opacity.
+  window.compositeAndSave = async function ({ crop = 620, outSize = 440 } = {}) {
+    const raw = window.__raw, { cx, cy } = window.__meta;
+    const bg = getComputedStyle(document.documentElement)
+      .getPropertyValue("--bg").trim() || "#F2ECDC";
+    const x0 = Math.round((cx - crop / 2) * dpr);
+    const y0 = Math.round((cy - crop / 2) * dpr);
+    const s = Math.round(crop * dpr);
+    const out = document.createElement("canvas");
+    out.width = outSize; out.height = outSize;
+    const octx = out.getContext("2d");
+    const frames = [];
+    for (const f of raw) {
+      octx.fillStyle = bg;
+      octx.fillRect(0, 0, outSize, outSize);
+      const img = new Image();
+      img.src = f.url;
+      await img.decode();
+      octx.drawImage(img, x0, y0, s, s, 0, 0, outSize, outSize);
+      if (f.fo > 0) {
+        // difference(backdrop, white) = 255 - backdrop; composite at alpha:
+        // out = backdrop + (255 - 2*backdrop) * fo
+        const id = octx.getImageData(0, 0, outSize, outSize);
+        const d = id.data, a = f.fo;
+        for (let i = 0; i < d.length; i += 4) {
+          d[i]     = d[i]     + (255 - 2 * d[i])     * a;
+          d[i + 1] = d[i + 1] + (255 - 2 * d[i + 1]) * a;
+          d[i + 2] = d[i + 2] + (255 - 2 * d[i + 2]) * a;
+        }
+        octx.putImageData(id, 0, 0);
+      }
+      frames.push(out.toDataURL("image/png").split(",")[1]);
+    }
+    await fetch("/save", {
+      method: "POST",
+      body: JSON.stringify({ w: outSize, h: outSize, count: frames.length, frames }),
+    });
+    return { saved: frames.length, size: outSize };
+  };
+
+  window.__ready = true;
+</script>
+</body>
+</html>
