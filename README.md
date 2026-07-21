@@ -5,7 +5,7 @@ Based on the unique styling of Jack "The King" Kirby. Read more about how the po
 <table>
 <tr>
 <td><img src="assets/krackle.jpg" width="280" alt="A classic Kirby Krackle panel: a figure dissolving into radiating dot-masses and energy, straight from a Jack Kirby comic page." /></td>
-<td><img src="assets/krackle.gif" width="320" alt="A krackle burst from this library, animated: black ink dot-masses bloom outward from a click point band by band, hold, then dissolve and fade, leaving a clear halo at the center and 2-4 white rays preserved through the blast." /></td>
+<td><img src="assets/krackle.gif" width="320" alt="A krackle burst from this library, animated: a click blows out the whole frame in an inverted flash, then black ink dot-masses bloom outward from the click point band by band, hold, then dissolve and fade, leaving a clear halo at the center and 2-4 white rays preserved through the blast." /></td>
 </tr>
 <tr>
 <td align="center"><sub>The King's original</sub></td>
