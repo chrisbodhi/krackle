@@ -56,10 +56,24 @@
   }
   #tuner .group-title:first-child { margin-top: 0; }
   #tuner .row { margin-bottom: 10px; }
-  #tuner .row label {
-    display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px;
+  #tuner .row-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 4px;
   }
+  #tuner .row-head .name { flex: 1; }
+  #tuner .row-head .controls { display: flex; align-items: baseline; gap: 2px; }
   #tuner .row .val { font-variant-numeric: tabular-nums; opacity: 0.6; }
+  #tuner .icon-btn {
+    all: unset; cursor: pointer; font-size: 12px; line-height: 1;
+    padding: 2px 3px; opacity: 0.5; color: var(--fg);
+  }
+  #tuner .icon-btn:hover { opacity: 1; color: var(--accent); }
+  #tuner .hint {
+    font-size: 11px; line-height: 1.5; opacity: 0.8;
+    border-left: 2px solid var(--rule); padding-left: 7px;
+    margin: 2px 0 8px;
+  }
+  #tuner .hint[hidden] { display: none; }
   #tuner .row input[type="range"] { width: 100%; display: block; }
   #tuner .row select {
     width: 100%; font: inherit; font-family: "IBM Plex Mono", monospace;
