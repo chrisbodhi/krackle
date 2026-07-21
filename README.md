@@ -54,9 +54,11 @@ import it from there:
 </script>
 ```
 
-Every click detonates a burst at the click point. No setup required — it
-appends a full-viewport `<canvas>`, reads `--krackle-fill` for ink color
-(default `#16130f`), and cleans up after itself via `destroy()`.
+Every click detonates a burst at the click point — dot masses bloom
+outward, and by default the whole page's colors invert for an instant,
+like the discharge blew out the screen. No setup required — it appends a
+full-viewport `<canvas>`, reads `--krackle-fill` for ink color (default
+`#16130f`), and cleans up after itself via `destroy()`.
 
 ### With dark mode themes
 
@@ -82,6 +84,43 @@ Krackle watches for attribute changes on `<html>`/`<body>` (class,
 `data-theme`, `style`) and OS-level `prefers-color-scheme` changes, and
 rebuilds its sprite atlas automatically — no need to call `initKrackle()`
 again when the theme flips.
+
+## Options
+
+`initKrackle(options)` takes a partial `KrackleOptions` object — anything
+you omit falls back to the tuned defaults below.
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `maxParticles` | `920` | Particle pool size — caps how many dots can be alive across overlapping bursts. |
+| `lifespan` | `[1200, 2500]` | How long a burst lives before it's fully faded, ms. |
+| `zIndex` | `10` | Canvas z-index. |
+| `seed` | `19620828` | Sprite atlas seed (Kirby's birthday). |
+| `fillVar`, `rimVar`, `modeVar` | `--krackle-fill`, `--krackle-rim`, `--krackle-mode` | CSS custom properties read for ink color, dark-mode rim color, and forced light/dark mode. |
+| `lobesMax` | `5` | Max silhouette lobes bulging off each dot's mask — more is spikier and lumpier. |
+| `lobeSpread` | `0.55` | How far lobes bulge out from a dot's core silhouette. |
+| `rimWidth` | `1.5` | Width (px) of the light halo drawn under the ink in dark mode. |
+| `satsMax` | `2` | Max satellite dots per cluster. |
+| `satSpread` | `1.55` | How far satellites scatter from their anchor, ×anchor radius. |
+| `rays` | `[2, 4]` | Number of preserved white channels radiating from the click, min–max. |
+| `rayHalf` | `[0.32, 0.44]` | Half-angle width of each preserved white ray, radians. |
+| `burstRadius` | `[22, 210]` | How far from the click clusters first spawn — inner/outer band radius, px. |
+| `anchorRadius` | `[6, 14.5]` | Radius range for the big central dot of each cluster, px. |
+| `satRadius` | `[4.5, 10]` | Radius range for the smaller dots scattered around each anchor, px. |
+| `dissolve` | `0.15` | How much satellites shrink the farther they land from their anchor. |
+| `driftRange` | `[34, 106]` | Extra outward drift each cluster travels after spawning, px. |
+| `bandAttempts` | `[14, 18, 26]` | Clusters attempted per radial band, inner→outer — the density knob. |
+| `bandDelayMs` | `85` | Delay between each outward band's bloom, ms. |
+| `flash` | `"invert"` | Full-viewport flash on click: `"none"`, `"white"` (wash toward white), or `"invert"` (color-inverts the whole page, ink blobs included, for an instant). |
+| `flashMs` | `180` | How long the flash takes to fade out, ms. |
+| `flashPeak` | `0.85` | The flash's opacity at the instant of the click. |
+
+`krackle-demo.html` has a live tuning panel for all of the above — click
+**⚙ Tune** to open it. Every field has a slider (or dropdown, for
+`flash`), an **ⓘ** button with a short explanation, and a **↺** button
+to reset just that one field; **↺ Reset all** resets everything at once.
+**⧉ Copy config** copies the current values as JSON, handy for pasting a
+tuned result back into `DEFAULTS` in `krackle.ts`.
 
 ## Development
 
