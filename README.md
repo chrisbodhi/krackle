@@ -100,7 +100,7 @@ you omit falls back to the tuned defaults below.
 | `lobesMax` | `5` | Max silhouette lobes bulging off each dot's mask — more is spikier and lumpier. |
 | `lobeSpread` | `0.55` | How far lobes bulge out from a dot's core silhouette. |
 | `rimWidth` | `1.5` | Width (px) of the light halo drawn under the ink in dark mode. |
-| `satsMax` | `2` | Max satellite dots per cluster. |
+| `satsMax` | `2` | Satellite dots per cluster — but see the note below: at the default it has no effect. |
 | `satSpread` | `1.55` | How far satellites scatter from their anchor, ×anchor radius. |
 | `rays` | `[2, 4]` | Number of preserved white channels radiating from the click, min–max. |
 | `rayHalf` | `[0.32, 0.44]` | Half-angle width of each preserved white ray, radians. |
@@ -114,6 +114,29 @@ you omit falls back to the tuned defaults below.
 | `flash` | `"invert"` | Full-viewport flash on click: `"none"`, `"white"` (wash toward white), or `"invert"` (color-inverts the whole page, ink blobs included, for an instant). |
 | `flashMs` | `180` | How long the flash takes to fade out, ms. |
 | `flashPeak` | `0.85` | The flash's opacity at the instant of the click. |
+
+> **Note on `satsMax`.** The name overstates what this knob does. Full and
+> medium-mass clusters compute their satellite count as
+> `3 + ((srand() * (satsMax - 2)) | 0)`, so the option is really *three, plus
+> up to `satsMax - 2` extra* rather than a cap. At the default of `2` that
+> second term is always `0`, so every full or medium cluster gets exactly
+> **three** satellites, not two, and the knob is inert. Measured behavior:
+>
+> | `satsMax` | Satellites per full/medium cluster |
+> | --- | --- |
+> | `0` | 2–3 |
+> | `1`, `2` (default), `3` | exactly 3 |
+> | `n` ≥ 4 | 3–`n` (so `5` → 3–5) |
+>
+> The `0` row is the truncation quirk, not a design: the product goes
+> negative and `| 0` rounds it toward zero to `-1` exactly half the time.
+> Dissolving tip clusters (the outermost band) ignore the option entirely
+> and always take 2–3. The demo's tuning panel exposes the full 0–24 range,
+> so all of the above is reachable there.
+>
+> This is documented rather than corrected because changing either the
+> formula or the default would shift the burst's look. The particle counts
+> in [How it stays fast](#how-it-stays-fast) reflect the real behavior.
 
 `krackle-demo.html` has a live tuning panel for all of the above — click
 **⚙ Tune** to open it. Every field has a slider (or dropdown, for
